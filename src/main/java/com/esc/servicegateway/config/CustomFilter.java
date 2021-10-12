@@ -6,6 +6,7 @@ import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
 
 import reactor.core.publisher.Mono;
@@ -19,8 +20,11 @@ public class CustomFilter implements GlobalFilter {
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 		ServerHttpRequest request = exchange.getRequest();
 		// Perform Authentication/Authorization
-		logger.info("Performing Auth for request: {}", request.getId());
-		return chain.filter(exchange);
+		logger.info("Performing Auth for request in pre filter: {}", request.getId());
+		return chain.filter(exchange).then(Mono.fromRunnable(() -> {
+			ServerHttpResponse response = exchange.getResponse();
+			logger.info("Respose Status code from post filter: {}", response.getStatusCode());
+		}));
 	}
 
 }
